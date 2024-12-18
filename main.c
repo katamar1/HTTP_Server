@@ -1,6 +1,6 @@
 #include <stdio.h>
 
 int main(void) {
-    printf("Hello, World!\n");
+    puts("I'm checking to make sure Git commits properly!");
     return 0;
 }
