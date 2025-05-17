@@ -1,0 +1,400 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connected</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+            color: #333;
+        }
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        main {
+            padding: 2rem;
+            max-width: 800px;
+            margin: auto;
+        }
+        section {
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+        }
+        h1, h2 {
+            color: #4a90e2;
+        }
+        code {
+            background: #eee;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .highlighted-code {
+            background: #dbe4ee;
+            color: #1a1a1a;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>The HTTP Server worked!</h1>
+    <p>This page itself is actually a html file called <code class="highlighted-code">index.html</code>, but the reason you can see it is thanks to the HTTP server!</p>
+</header>
+
+<main>
+    <section>
+        <h2>A VERY Brief History of HTTP</h2>
+        <p>
+            The <strong>HyperText Transfer Protocol (HTTP)</strong> was invented by Tim Berners-Lee in 1989 as part of the World Wide Web project.
+            The first version, HTTP/0.9, was incredibly simple, as it could literally only fetch an HTML page.
+            Over time, new versions were introduced to handle more complexity:
+        </p>
+        <ul>
+            <li><strong>HTTP/1.0 (1996):</strong> Added support for status codes, headers, and more MIME types.</li>
+            <li><strong>HTTP/1.1 (1997):</strong> Introduced persistent connections, chunked transfer encoding, and caching mechanisms.</li>
+            <li><strong>HTTP/2 (2015):</strong> Improved performance with multiplexing, header compression, and binary framing.</li>
+            <li><strong>HTTP/3 (2022+):</strong> Uses QUIC instead of TCP for faster, encrypted communication.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>How This HTTP Server Works</h2>
+        <ol>
+            <li>
+                <strong>Socket Creation:</strong> Before a server can talk to a browser (like Chrome or Firefox), it needs to
+                <strong>open a communication channel</strong>. You can think of it like opening a door for visitors. This is done by creating something called a
+                <strong>socket</strong>.<br><br>
+
+                A <em>socket</em> is a programming tool that lets two computers talk to each other over a network. Think of it like a phone: it lets your server “pick up calls” from clients (like web browsers).<br><br>
+
+                The server uses the <code>socket()</code> function to create this communication tool. It sets up a
+                <strong>TCP socket</strong>, which uses a reliable system that guarantees messages will arrive in the right order without anything missing.
+                <br><br>
+                Example in C:
+                <pre><code>int server_socket = socket(AF_INET, SOCK_STREAM, 0);</code></pre>
+                <ul>
+                    <li><code>AF_INET</code> → Use IPv4 addresses.</li>
+                    <li><code>SOCK_STREAM</code> → Use TCP for reliable communication.</li>
+                    <li><code>0</code> → Use the default protocol for the socket type.</li>
+                </ul>
+
+                After creating the socket, the server needs to bind it to a specific port (like 8080) and IP address (like <code>0.0.0.0</code>) so it knows where to listen for messages.
+
+                <pre><code>struct sockaddr_in server_address;
+server_address.sin_family = AF_INET;
+server_address.sin_port = htons(8080);
+server_address.sin_addr.s_addr = INADDR_ANY;
+
+bind(server_socket, (struct sockaddr*)&server_address, sizeof(server_address));</code></pre>
+                Don't worry if the code isn't perfectly clear right now. As long as you're following at a high level, you're getting all you need to know!
+                After this step, the server is telling the operating system:
+                <em>“Ready. If anyone sends a message to port 8080, I can hear it.”</em>
+            </li>
+
+            <li>
+                <strong>Listening:</strong> Now that the server has created and bound a socket to a port, it needs to tell the operating system:
+                <em>“I’m not actively talking yet, but I’m ready to listen if anyone wants to connect.”</em><br><br>
+
+                This is done with the <code>listen()</code> function. It puts the socket into <strong>passive mode</strong>, meaning the server won’t initiate any conversations, but it will just sit quietly and wait for someone (a client like a browser) to start talking to it.
+
+                <br><br>
+                Here's how it looks in C:
+                <pre><code>listen(server_socket, SOMAXCONN);</code></pre>
+
+                <ul>
+                    <li><code>server_socket</code> is the socket we created and bound earlier.</li>
+                    <li><code>SOMAXCONN</code> is a constant that tells the system how many incoming connections can wait in line (in the "backlog") before they’re accepted. You can also pass a number like <code>5</code> manually (which is what this server does!).</li>
+                </ul>
+
+                Once <code>listen()</code> is called, the operating system adds your server to its internal list of <strong>services waiting for connections</strong>. Think of it like flipping on the “Open” sign at a store. No one is there right now, but the shop is ready for them.
+
+                <br><br>
+                This step is really important, because without calling <code>listen()</code>, the server won’t receive any connection attempts. It just has a socket bound to a port, but no one is allowed to use it yet. After this call, the server is ready to <strong>accept clients</strong>, which is the next step.
+            </li>
+
+
+            <li>
+                <strong>Accepting Clients:</strong> Once the server is in <em>listening mode</em>, it's ready to receive incoming connections.
+                <br><br>
+
+                This is done using the <code>accept()</code> function. When a client (like a browser) tries to connect, <code>accept()</code> pulls that client out of the queue and creates a new connection just for them.
+                <br><br>
+
+                Here's how that might look in C:
+                <pre><code>int client_socket = accept(server_socket, NULL, NULL);</code></pre>
+
+                <ul>
+                    <li><code>server_socket</code> is the listening socket that waits for connections.</li>
+                    <li>The two <code>NULL</code> values can be used to get info about the client, but we’re skipping that for now.</li>
+                    <li><code>client_socket</code> is a brand-new socket created just for this one client, like a private phone line just for them.</li>
+                </ul>
+
+                Once the server accepts a client, it can use that new <code>client_socket</code> to communicate directly with that one browser or app.
+                <br><br>
+
+                The next step is to actually <strong>receive data</strong> from the client. A typical HTTP request looks like:
+                <pre><code>GET / HTTP/1.1</code></pre>
+
+                To do this, the server calls the <code>recv()</code> function:
+                <pre><code>char buffer[1024];
+int bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);</code></pre>
+
+                This reads the incoming data from the client and stores it in a buffer so the server can process it.
+                <br><br>
+
+                At this point, the server has officially:
+                <ul>
+                    <li>Welcomed a client (browser) in with <code>accept()</code></li>
+                    <li>Read their request using <code>recv()</code></li>
+                </ul>
+
+                Now it's ready to figure out what the client wants.
+            </li>
+
+
+            <li>
+                <strong>Parsing the Request:</strong> After receiving raw data from the client using <code>recv()</code>, the server needs to figure out what the client is asking for.
+                <br><br>
+
+                The data the server receives is usually a plain-text <strong>HTTP request</strong>. A very simple one might look like this:
+                <pre><code>GET / HTTP/1.1
+Host: localhost:8080
+User-Agent: Mozilla/5.0
+Accept: text/html
+</code></pre>
+
+                The first line, called the <strong>request line</strong>, is the most important. It follows this format:
+                <br>
+                <code>[METHOD] [PATH] [VERSION]</code>
+                <br><br>
+                For example:
+                <ul>
+                    <li><code>GET</code> → the method (what kind of action the client wants)</li>
+                    <li><code>/</code> → the path (what resource the client wants, like <code>/index.html</code>)</li>
+                    <li><code>HTTP/1.1</code> → the version of HTTP being used</li>
+                </ul>
+
+                In C, the server typically uses functions like <code>strstr()</code> or <code>sscanf()</code> to find and extract the method and path. Here’s a simple example:
+
+                <pre><code>char method[8], path[1024];
+sscanf(request_buffer, "%s %s", method, path);</code></pre>
+
+                This extracts the first two words from the request, the method and the path, and stores them in variables so the server can make decisions based on them.
+                <br><br>
+
+                Once the server knows:
+                <ul>
+                    <li>What kind of request it is (e.g., <code>GET</code>)</li>
+                    <li>What file or page is being requested (e.g., <code>/</code> or <code>/about.html</code>)</li>
+                </ul>
+                it can move on to <strong>handling the request</strong>.
+            </li>
+
+
+            <li>
+                <strong>Handling the Request:</strong> After the server has parsed the client's request and knows what they’re asking for, it needs to decide how to respond.
+                <br><br>
+
+                The server first checks if the request method is supported. This server only supports the <code>GET</code> method, which means “fetch a file or page.” If the method is something like <code>POST</code> or <code>DELETE</code>, the server will respond with an error (but do look into these on your own! They're just as interesting).
+                <br><br>
+
+                Here’s an example in C:
+                <pre><code>if (strcmp(method, "GET") != 0) {
+    /* Method not allowed, send back a 405 response */
+}</code></pre>
+
+                If the method is <code>GET</code>, the server moves on to figure out which file the client is asking for. The <code>path</code> from the request tells us this.
+
+                <ul>
+                    <li>If the path is <code>/</code>, that usually means the client wants the homepage, so the server looks for a file like <code>index.html</code>.</li>
+                    <li>If the path is something like <code>/about.html</code>, the server looks for a file named exactly that in the <code>public/</code> directory.</li>
+                </ul>
+
+                In C, this might look like:
+                <pre><code>char filepath[1024];
+if (strcmp(path, "/") == 0) {
+    strcpy(filepath, "public/index.html");
+} else {
+    snprintf(filepath, sizeof(filepath), "public%s", path);
+}</code></pre>
+
+                At this point, the server has:
+                <ul>
+                    <li>Verified that the request method is allowed</li>
+                    <li>Converted the request path into a file path on disk</li>
+                </ul>
+
+                If the file exists, the server will read it and prepare to send it back to the client. If it doesn’t, it will return a <code>404 Not Found</code> error instead. This server has a 404 page as well!
+                <br><br>
+            </li>
+
+
+            <li>
+                <strong>Reading from Disk:</strong> Once the server has figured out which file the client wants (like <code>public/index.html</code>), it needs to open that file and read its contents so it can send them back in the HTTP response.
+                <br><br>
+                The server uses file I/O functions in C like <code>fopen()</code>, <code>fread()</code>, and <code>fclose()</code> to load the requested file:
+
+                <pre><code>FILE* file = fopen(filepath, "r");
+if (file == NULL) {
+    // File not found – will send 404 later
+} else {
+    // Read file contents into a buffer
+}</code></pre>
+
+                The server typically:
+                <ol>
+                    <li>Opens the file in read mode.</li>
+                    <li>Checks if the file exists. If not, it plans to send a <code>404 Not Found</code>.</li>
+                    <li>If the file exists, it reads all the content into memory using something like <code>fread()</code>.</li>
+                    <li>Stores the content in a buffer so it can be included in the response body later.</li>
+                    <li>Closes the file using <code>fclose()</code> when done.</li>
+                </ol>
+
+                Here’s an example of reading the file content:
+
+                <pre><code>fseek(file, 0, SEEK_END);
+long length = ftell(file);
+fseek(file, 0, SEEK_SET);
+
+char* body = malloc(length + 1);
+fread(body, 1, length, file);
+body[length] = '\0';
+
+fclose(file);</code></pre>
+
+                At this point, the server has the file’s contents stored in memory, ready to send back to the client. Now it just needs to build a proper HTTP response around that content.
+            </li>
+
+
+            <li>
+                <strong>Sending the Response:</strong> Now that the server has the contents of the file in memory, it needs to wrap that content in a proper <strong>HTTP response</strong> and send it back to the client (like a browser).
+                <br><br>
+
+                An HTTP response has three main parts:
+                <ol>
+                    <li><strong>Status line</strong> → Tells the browser whether the request was successful (e.g., <code>HTTP/1.1 200 OK</code>).</li>
+                    <li><strong>Headers</strong> → Provide extra information like the content type and length.</li>
+                    <li><strong>Body</strong> → The actual content of the file (e.g., the HTML of the web page).</li>
+                </ol>
+
+                Here’s a very simple HTTP response the server might send:
+                <pre><code>HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 123
+
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;...&lt;/html&gt;
+</code></pre>
+
+                To build this response in C, the server first creates a response header as a string:
+
+                <pre><code>char header[1024];
+sprintf(header,
+  "HTTP/1.1 200 OK\r\n"
+  "Content-Type: text/html\r\n"
+  "Content-Length: %ld\r\n"
+  "Connection: close\r\n\r\n",
+  length);</code></pre>
+
+                Then it sends both the header and the body using the <code>send()</code> function:
+
+                <pre><code>send(client_socket, header, strlen(header), 0);
+send(client_socket, body, length, 0);</code></pre>
+
+                Together, this tells the browser:
+                <ul>
+                    <li>"Everything went fine!" (<code>200 OK</code>)</li>
+                    <li>"Here's some HTML."</li>
+                    <li>"The page you're seeing is <code>index.html</code> (or whatever file was requested)."</li>
+                </ul>
+            </li>
+
+
+            <li>
+                <strong>Error Handling:</strong> Sometimes thing happen: the client might request a file that doesn’t exist, or use a method the server doesn’t support. When that happens, the server needs to send back an appropriate error response so the client knows what went wrong.
+                <br><br>
+
+                There are two common types of errors this server might handle:
+
+                <ul>
+                    <li><strong>404 Not Found:</strong> The client asked for a file that doesn’t exist (like <code>/cats.html</code> when no such file is on disk).</li>
+                    <li><strong>405 Method Not Allowed:</strong> The client used an HTTP method the server doesn’t support (like <code>POST</code> instead of <code>GET</code>).</li>
+                </ul>
+
+                When either of these happens, the server constructs a basic error response instead of trying to serve a real file.
+
+                For example, to handle a missing file (404):
+
+                <pre><code>const char* response_404 =
+  "HTTP/1.1 404 Not Found\r\n"
+  "Content-Type: text/html\r\n"
+  "Content-Length: 65\r\n"
+  "Connection: close\r\n\r\n"
+  "&lt;h1&gt;404 Not Found&lt;/h1&gt;&lt;p&gt;The requested file was not found.&lt;/p&gt;";
+
+send(client_socket, response_404, strlen(response_404), 0);</code></pre>
+
+                And for a bad method (405):
+
+                <pre><code>const char* response_405 =
+  "HTTP/1.1 405 Method Not Allowed\r\n"
+  "Content-Length: 0\r\n"
+  "Connection: close\r\n\r\n";
+
+send(client_socket, response_405, strlen(response_405), 0);</code></pre>
+
+                These responses follow the same format as normal ones (status line, headers, body) but they explain that something went wrong. Now all we have to do is close the connection.
+            </li>
+
+
+            <li>
+                <strong>Closing Connection:</strong> After the server has sent a response, it has to clean up. The conversation with the client is over, so the server needs to close the connection and get ready for the next one.
+                <br><br>
+
+                This is done with the <code>close()</code> function in C:
+
+                <pre><code>close(client_socket);</code></pre>
+
+                This tells the operating system:
+                <em>"We're done talking to this client, free any resources used."</em>
+                <br><br>
+
+                Why close the connection? Because keeping too many connections open wastes memory and slows things down. Our HTTP/1.1 server typically closes the connection after every request.
+
+                <br><br>
+                After closing the client’s socket, the server goes back to the <strong>accept()</strong> step and waits for the next incoming request.
+                <br><br>
+
+                And that’s it! This HTTP server now handles requests, serves files, deals with errors, and closes connections. I hope this was helpful for a high level understanding!
+            </li>
+
+        </ol>
+    </section>
+
+</main>
+
+<footer>
+    &copy; 2025 Custom HTTP Server | Built for educational purposes.
+</footer>
+
+</body>
+</html>
