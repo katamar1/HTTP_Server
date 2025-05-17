@@ -24,7 +24,6 @@ A lightweight HTTP/1.1 web server written in C using POSIX sockets. It serves st
     - `500 Internal Server Error` on file read failures
 - Graceful error handling and clean connection closure
 
----
 
 ## Technologies Used
 
@@ -33,7 +32,6 @@ A lightweight HTTP/1.1 web server written in C using POSIX sockets. It serves st
 - **HTTP/1.1 protocol**
 - **CMake** for build system
 
----
 
 ## How to Build & Run
 
@@ -42,7 +40,6 @@ From your project root, run the following command:
 ```bash
 ./run.sh
 ```
----
 
 ##  How to Test
 
@@ -59,7 +56,6 @@ curl -i http://localhost:8080/missing.html   /* 404 Not Found */
 curl -i -X POST http://localhost:8080/       /* 405 Method Not Allowed */
 ```
 
----
 
 ## To Add
 
