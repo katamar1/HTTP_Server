@@ -25,7 +25,7 @@ Please note: Windows users must use WSL for the execution environment. Install i
 
 ## How to Build & Run
 
-From your project root, run the following command:
+From your project root, run the following commands:
 
 ```bash
 chmod +x run.sh
