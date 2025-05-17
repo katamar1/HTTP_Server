@@ -1,17 +1,7 @@
 # HTTP Server in C
 
 A lightweight HTTP/1.1 web server written in C using POSIX sockets. It serves static HTML files from a `/public` directory and handles basic HTTP response codes.
-
-
-##  Screenshots
-
-### Homepage (`GET /`)
-![Homepage](./screenshots/homepage.png)
-
-### 404 Page (`GET /missing.html`)
-![404 Page](./screenshots/notfound.png)
-
-
+Please note: Windows users must use WSL. Install it here: https://learn.microsoft.com/en-us/windows/wsl/install
 
 ## Features
 
