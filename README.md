@@ -1,6 +1,6 @@
 # HTTP Server in C
 
-A lightweight HTTP/1.1 web server written in C using POSIX sockets. It serves static HTML files from a `/public` directory and handles basic HTTP response codes.
+A lightweight HTTP/1.1 web server written in C using POSIX sockets. It serves static HTML files from a `/public` directory and handles basic HTTP response codes. Install CMake before running.
 Please note: Windows users must use WSL for the execution environment. Install it here: https://learn.microsoft.com/en-us/windows/wsl/install (it'll be good practice!)
 
 ## Features
@@ -28,6 +28,7 @@ Please note: Windows users must use WSL for the execution environment. Install i
 From your project root, run the following command:
 
 ```bash
+chmod +x run.sh
 ./run.sh
 ```
 
