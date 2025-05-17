@@ -7,10 +7,6 @@
 #include <sys/socket.h>
 
 #define BUFFER_SIZE 1024
-
-
-
-
 #define BUFFER_SIZE 1024
 
 /* this handles a single client's request, takes in an int (the client's socket) and does the correct thing depending on the client. no return value */
