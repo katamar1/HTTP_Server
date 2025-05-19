@@ -3,7 +3,7 @@
 A lightweight HTTP/1.1 web server written in C using POSIX sockets. It serves static HTML files from a `/public` directory and handles basic HTTP response codes. Install CMake before running.
 Please note: Windows users must use WSL for the execution environment. Install it here: https://learn.microsoft.com/en-us/windows/wsl/install (it'll be good practice!)
 
-## Features
+## What it Does
 
 - Parses basic `GET` HTTP/1.1 requests
 - Serves static `.html` files from a `./public/` directory
@@ -12,7 +12,6 @@ Please note: Windows users must use WSL for the execution environment. Install i
     - `404 Not Found` with a custom HTML page
     - `405 Method Not Allowed` for unsupported methods
     - `500 Internal Server Error` on file read failures
-- Graceful error handling and clean connection closure
 
 
 ## Technologies Used
