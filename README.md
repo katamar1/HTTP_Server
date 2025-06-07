@@ -40,6 +40,8 @@ chmod +x run.sh
 - Visit `http://localhost:8080/` - Should serve `public/index.html`
 - Visit `http://localhost:8080/doesnotexist.html` - Should serve `public/404.html` (you can have any text after the /)
 
+<img alt="The first part of the tutorial" src="https://github.com/katamar1/http-server-c/blob/main/content.png">
+
 ### Using `curl`:
 
 ```bash
