@@ -3,6 +3,8 @@
 A lightweight HTTP/1.1 web server written in C using POSIX sockets. It serves static HTML files from a `/public` directory and handles basic HTTP response codes. Install CMake before running.
 Please note: Windows users must use WSL for the execution environment. Install it here: https://learn.microsoft.com/en-us/windows/wsl/install (it'll be good practice!)
 
+<img alt="What you should see when you successfully connect" src="https://github.com/katamar1/http-server-c/blob/main/intro.png">
+
 ## What it Does
 
 - Parses basic `GET` HTTP/1.1 requests
